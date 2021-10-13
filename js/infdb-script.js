@@ -26,8 +26,13 @@ $(function () {
   var dataResponse = "";
   var influxQueryData = "";
   var databaseList = $.makeArray();
+  var measurementList = $.makeArray();
+  var columnList = $.makeArray();
   var dropdowndbpopulated = false;
   var selectedDatabase = false;
+  var rowCount = 0;
+  var maxMeasurementReturned = 50; // maximum number of measurements that'll be shown in the summary tables
+  var maxColumnReturned = 20; // maximum number of columns that'll be shown in the summary tables
 
 
   //
@@ -128,6 +133,76 @@ $(function () {
 
 
   //
+  // Hit the show DB details button
+  //
+  $( "#showtabledetails" ).click(function () {
+    if (!dropdowndbpopulated) {
+      debugLog("Showtabledetails clicked but no table selected");
+      return false;
+    }
+    output = "";
+    // first of all obtain list of measurements in this table
+    influxQueryData = "q=SHOW MEASUREMENTS";
+    influxURL = influxProto + influxHost + ":8086/query?db=" + selectedDatabase + "&" + influxAuthString;
+    influxQuery(gotMeasurements);
+    debugLog("gotMeasurements returned to showtabledetails clicked");
+    // if there's more than 10 measurements then don't run this as it'll kill the browser
+    if (measurementList.length > maxMeasurementReturned) {
+      maxList = maxMeasurementReturned;
+      output = output + "Limiting measurements to " + maxMeasurementReturned + " due to browser performance problems.<br><br>";
+    } else {
+      
+      maxList = measurementList.length;
+    }
+
+    debugLog("maxlist set to " + maxList);
+    if (maxList === 0) {
+      debugLog("found zero");
+      // empty DB
+      $("#queryresults").text("Database is empty");
+      return true; 
+    }
+
+    output = output + "<table class=\"table table-bordered\">\n<thead>\n<tr>\n<th scope=\"col\">Measurement</th>\n<th scope=\"col\">Rows</th>\n</tr>\n</thead><tbody>";
+
+    // for each measurement, get a list of the columns
+    for ( i = 0 ; i < maxList ; i++ ) { 
+      output = output + "<tr><td><a class=\"\" href=\"#\">"+measurementList[i]+"</a></td>";
+      debugLog("checking " + measurementList[i]);
+      influxQueryData = "q=SELECT * FROM " + measurementList[i] + " LIMIT 1";
+      influxURL = influxProto + influxHost + ":8086/query?db=" + selectedDatabase + "&" + influxAuthString;
+      influxQuery(getColumns);
+      // columnList is now populated
+      colOutput = "";
+      for ( n=0 ; n < columnList.length ; n++ ) {
+        if (n < columnList.length) { // decides if we need a comma, if htere's more columns listed
+          colOutput = colOutput + columnList[n] + ", ";
+        } else {
+          colOutput = colOutput + columnList[n];
+        }
+        
+      }
+      output = output + "<td>"+colOutput+"</td></tr>";
+      // find number of entries in the table - Blocking this as it is really slow on big tables
+      //influxQueryData = "q=SELECT COUNT(*) FROM " + measurementList[i];
+      //influxURL = influxProto + influxHost + ":8086/query?db=" + selectedDatabase + "&" + influxAuthString;
+      //influxQuery(getRowCount);
+
+      //output = output + rowCount + "<br>";
+
+     
+    }
+    output = output + "</tbody></table><br>";
+    //debugLog("outputting + " + output)
+    debugLog("read " + i + " entries from measurementsList");
+
+
+    // display output
+    $("#queryresults").html(output);  
+  });
+
+
+  //
   // triggers when user opens the list of databases for a query - need to populate it if first time opening
   //
   $("#dropdowndbbutton").click(function () {
@@ -165,6 +240,11 @@ $(function () {
     selectedDatabase = $(this).text();
     debugLog("Clicked list item - " + selectedDatabase);
     $("#dropdowndbbutton").text(selectedDatabase);
+    // make the "show Details button appear clickable" - showtabledetails
+    $("#showtabledetails").removeClass();
+    $("#showtabledetails").addClass("btn btn-primary");
+    // wipe the output
+    $("#queryresults").text("");  
   }
 
 
@@ -245,6 +325,7 @@ $(function () {
     }
   }
 
+  
 
   // callback that populates the list of databases
   function showDatabases(result) {
@@ -288,6 +369,99 @@ $(function () {
       $("#userlist").text("Failed to get list of users");  
     }
 
+  }
+
+
+
+    // This one deals with output of "SHOW MEASUREMENTS" and puts each returned measurement into array $measurementList
+    function gotMeasurements(result) {
+      if (result) {
+        // wipe any existing array info
+        measurementList = $.makeArray();
+        debugLog("gotMeasurements got: " + JSON.stringify(dataResponse)); 
+        var output = "";
+        for (var i=0 ; i< dataResponse.results[0].series[0].values.length ; i++) {
+          var measurement = dataResponse.results[0].series[0].values[i]
+          debugLog("found measurement: " + measurement);
+          output = output + "<br>\n" + measurement;
+          measurementList.push(measurement);
+        }
+        //$("#queryresults").html(output);
+        debugLog("wrote " + i + " entries to measurementList");
+      } else {
+        debugLog("gotMeasurements with no result");
+        if (dataResponse) {
+          // query failed but may have some info in the response that indicates why
+          $("#queryresults").html(dataResponse);
+        } else {
+          debugLog("ifluxquery returned false");
+          // X-Influxdb-Error
+          $("#queryresults").text("Failed to run query");  
+        }
+  
+      }
+    }
+
+
+  // populates columns array with list of all columns in query - should be called with results of "SELECT * FROM table LIMIT 1"
+    function getColumns(result) {
+      if (result) {
+        // wipe any existing array info
+        columnList = $.makeArray();
+        debugLog("getColumns got: " + JSON.stringify(dataResponse)); 
+        var output = "";
+        numCols = dataResponse.results[0].series[0].columns.length;
+        if (numCols > maxColumnReturned ) {
+          columnList.push("Table has " + numCols + " columns, not showing in summary");
+          debugLog("not checking table for performance reasons");
+          return true;
+        } 
+        for (var i=0 ; i< numCols  ; i++) {
+          var column = dataResponse.results[0].series[0].columns[i]
+          debugLog("found column: " + column);
+          output = output + "<br>\n" + column;
+          columnList.push(column);
+        }
+        //$("#queryresults").html(output);
+        debugLog("wrote " + i + " entries to columnList");
+      } else {
+        debugLog("getColumns with no result");
+        if (dataResponse) {
+          // query failed but may have some info in the response that indicates why
+          $("#queryresults").html(dataResponse);
+        } else {
+          debugLog("ifluxquery returned false");
+          // X-Influxdb-Error
+          $("#queryresults").text("Failed to run query");  
+        }
+  
+      }
+    }
+
+
+  // populates rowcount variable from results of  "SELECT count(*) FROM table"
+  function getRowCount(result) {
+    if (result) {
+      // wipe any existing array info
+      rowCount = 0;
+      debugLog("getRowCount got: " + JSON.stringify(dataResponse)); 
+      var output = "";
+      for (var i=0 ; i< dataResponse.results[0].series[0].values.length ; i++) {
+        rowCount = dataResponse.results[0].series[0].values[i][1]
+        debugLog("found rowCount: " + rowCount);
+      }
+    } else {
+      debugLog("getRowCount with no result");
+      if (dataResponse) {
+        // query failed but may have some info in the response that indicates why
+        $("#queryresults").html(dataResponse);
+      } else {
+        debugLog("ifluxquery returned false");
+        // X-Influxdb-Error
+        $("#queryresults").text("Failed to run query");  
+      }
+
+    }
   }
 
 
@@ -343,6 +517,9 @@ $(function () {
         dataType: "json",
         contentType: "application/x-www-form-urlencoded",
         cache: false,
+        // async: false is not ideal but resolves UI rendering before DB query has returned, given this is a single page specific app then there is nothing else going on to block
+        // however browsers might start ignoring it, so probably needs changing at some point
+        async: false,
         success: function (data) {
           dataResponse = data;
           debugLog("influxQuery SUCCESS : ", dataResponse);
