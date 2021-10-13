@@ -95,15 +95,25 @@
    
    <br>
    <div class="row" style="padding-bottom: 10px;">
-    <label for="dropdowndbbutton">Select Database:</label> &nbsp;&nbsp;&nbsp;
-    <div class="btn-group">
-        <button type="button" id="dropdowndbbutton" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Populate Database List First
-        </button>
-        <div class="dropdown-menu" id="dbmenu">
+    <div class="col-6">
+        <label for="dropdowndbbutton">Select Database:</label> &nbsp;&nbsp;&nbsp;
+        <div class="btn-group">
+            <button type="button" id="dropdowndbbutton" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Populate Database List First
+            </button>
+            <div class="dropdown-menu" id="dbmenu">
+            </div>
         </div>
+    </div>
+    <div class="col-6">
+      <span class="float-right">
+        <button type="button" class="btn btn-default" id="showtabledetails">Show DB Details</button>
+      </span>
       </div>
    </div>
+
+
+
    <div class="row" style="padding-bottom: 10px;">
        <div class="col">
         <div class="input-group">
@@ -112,7 +122,10 @@
             </div>
             <textarea class="form-control" aria-label="Database Query Field" id="dbquery"></textarea>
           </div>
-          <br>
+
+          
+
+          <br><br>
         <button type="button" class="btn btn-primary" id="submitquery">Submit Query</button>
        </div>
    </div>
