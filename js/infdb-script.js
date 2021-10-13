@@ -146,7 +146,7 @@ $(function () {
     influxURL = influxProto + influxHost + ":8086/query?db=" + selectedDatabase + "&" + influxAuthString;
     influxQuery(gotMeasurements);
     debugLog("gotMeasurements returned to showtabledetails clicked");
-    // if there's more than 10 measurements then don't run this as it'll kill the browser
+    // Limit the number of measurements we'll search on incase it's an enormous table
     if (measurementList.length > maxMeasurementReturned) {
       maxList = maxMeasurementReturned;
       output = output + "Limiting measurements to " + maxMeasurementReturned + " due to browser performance problems.<br><br>";
@@ -156,13 +156,13 @@ $(function () {
     }
 
     debugLog("maxlist set to " + maxList);
-    if (maxList === 0) {
+    if (maxList === 0) { // empty DB
       debugLog("found zero");
-      // empty DB
       $("#queryresults").text("Database is empty");
       return true; 
     }
 
+    // create a table with measurements in first column and db columns in the second
     output = output + "<table class=\"table table-bordered\">\n<thead>\n<tr>\n<th scope=\"col\">Measurement</th>\n<th scope=\"col\">Rows</th>\n</tr>\n</thead><tbody>";
 
     // for each measurement, get a list of the columns
@@ -183,11 +183,11 @@ $(function () {
         
       }
       output = output + "<td>"+colOutput+"</td></tr>";
-      // find number of entries in the table - Blocking this as it is really slow on big tables
+
+      // find number of entries in the table - removing this as it is really slow on big tables
       //influxQueryData = "q=SELECT COUNT(*) FROM " + measurementList[i];
       //influxURL = influxProto + influxHost + ":8086/query?db=" + selectedDatabase + "&" + influxAuthString;
       //influxQuery(getRowCount);
-
       //output = output + rowCount + "<br>";
 
      
