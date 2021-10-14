@@ -7,3 +7,9 @@ Was mainly created to have a play with Influx and Javascript. It's pretty basic 
 
 
 Beerware license.
+
+
+
+Screenshot:
+
+![Screenshot](https://raw.githubusercontent.com/unixhead/InfluxSPA/main/ifx-spa.png)
