@@ -9,6 +9,9 @@ Was mainly created to have a play with Influx and Javascript. It's pretty basic 
 Beerware license.
 
 
+To use it download the files and drag index.html into your browser, will grab a few Javascript libraries online so will need some tweaking for a disconnected machine. 
+
+
 
 Screenshot:
 
