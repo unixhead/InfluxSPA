@@ -3,7 +3,7 @@ Single Page Webapp GUI interface to InfluxDB
 
 At the moment it only works with Influx 1.x stream. 
 
-Was mainly created to have a play with Influx and Javascript. It's pretty basic at the moment, will probably get around to expanding it at some point but life gets in the way!
+Allows easy looking at what databases, users and schemas are configured. Has a very basic browser for looking at stored data and can sort of run queries via a text input box, although the output may not render fully. 
 
 
 Beerware license.
@@ -13,6 +13,8 @@ To use it download the files and drag index.html into your browser, will grab a 
 
 
 
-Screenshot:
+Screenshots:
 
-![Screenshot](https://raw.githubusercontent.com/unixhead/InfluxSPA/main/ifx-spa.png)
+![Screenshot](https://raw.githubusercontent.com/unixhead/InfluxSPA/main/ss/ifx-spa.png)
+
+![Screenshot2](https://raw.githubusercontent.com/unixhead/InfluxSPA/main/ss/ss2.png)
