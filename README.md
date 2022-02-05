@@ -1,7 +1,5 @@
 # InfluxSPA
-Single Page Webapp GUI interface to InfluxDB
-
-At the moment it only works with Influx 1.x stream. 
+Single Page Webapp GUI interface to InfluxDB v1.x
 
 Allows easy looking at what databases, users and schemas are configured. Has a very basic browser for looking at stored data and can sort of run queries via a text input box, although the output may not render fully. 
 
